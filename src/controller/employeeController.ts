@@ -1,8 +1,8 @@
 // src/controller/employeeController.ts
 
 import { Request, Response, NextFunction } from "express";
-import { employeesService } from "../service/EmployeesServiceMap.ts";
-import { Employee } from "../model/Employee.ts";
+import { employeesService } from "../service/employee/EmployeesServiceMap.ts";
+import { Employee } from "../model/dtoTypes/Employee.ts";
 
 /**
  * Get all employees
@@ -21,6 +21,7 @@ import { Employee } from "../model/Employee.ts";
  * If an error occurs, it is passed to the next middleware for handling.
  */
 function getAllEmployees(req: Request, res: Response, _: NextFunction) {
+	console.log("GET ALL EMPL");
 	const department =
 		typeof req.query.department === "string"
 			? req.query.department
