@@ -1,11 +1,10 @@
 // src/index.ts
 
-import dotenv from "dotenv";
+import "./config/loadEnv.ts";
 import { startServer } from "./server/app.ts";
 import { fileStorage } from "./utils/fileStorage.ts";
-import { employeesService } from "./service/EmployeesServiceMap.ts";
+import { employeesService } from "./service/employee/EmployeesServiceMap.ts";
 
-dotenv.config();
 const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 startServer(PORT);
 
