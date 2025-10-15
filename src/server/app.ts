@@ -4,6 +4,7 @@ import express from "express";
 import morgan from "morgan";
 import _ from "lodash";
 import employeeRoutes from "../route/employeeRoutes.ts";
+import authRoutes from "../route/authRoutes.ts";
 import { errorHandler } from "../middleware/errorHandlers/errorHandler.ts";
 
 /** Starts the Express server on the specified port.
@@ -35,6 +36,7 @@ export function startServer(port: number) {
 
 	// Define routes
 	app.use("/api/employees", employeeRoutes);
+	app.use("/api/login", authRoutes);
 
 	// Error handling middleware
 	app.use(errorHandler);
