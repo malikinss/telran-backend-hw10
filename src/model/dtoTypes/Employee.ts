@@ -1,4 +1,4 @@
-// src/model/Employee.ts
+// src/model/dtoTypes/Employee.ts
 
 /**
  * Employee interface representing an employee's details.
