@@ -1,175 +1,174 @@
-# Homework 10: Validation & Persistence
+# Homework 10: Employees Back-End with Role-Based Authentication
 
 ## 🧩 Task Definition
 
-**Goal:**  
-Implement **data validation** using **Zod** and **data persistence** using a local JSON file.  
-This project extends the previous “Employees” back-end with full data validation, file storage, and graceful shutdown handling.
+HW#10 focuses on implementing a secure and role-based Employees management backend.  
+The main goals are:
 
-### Requirements:
-
-#### ✅ Validation
-
--   Implement **Zod validation** (similar to the “calculator” project).
--   Validate all employee fields before processing requests.
--   Handle `ZodError` through a centralized error middleware.
-
-#### 💾 Persistence
-
--   Employees are **stored in a JSON file**.
--   On app start → employees are **restored synchronously** from file.
--   On app termination (`SIGINT`, `SIGTERM`) → employees are **saved** to file automatically.
+-   Complete the basic Employees CRUD functionality.
+-   Introduce authentication middleware to validate JWT tokens.
+-   Implement role-based authorization:
+    -   401 Unauthorized if token is missing or invalid.
+    -   403 Forbidden if the user's role doesn't match the route.
+    -   Continue request pipeline if authorized.
+-   Update `index.ts` and error handlers to handle errors gracefully.
+-   Define access rules:
+    -   **GET /employees** – allowed for `ADMIN` and `USER`.
+    -   **POST, PATCH, DELETE /employees** – allowed only for `ADMIN`.
+    -   **POST /login** – public access.
 
 ---
 
 ## 📝 Description
 
-This project is a **TypeScript + Express.js** application that manages employees with full validation and file-based persistence.  
-It exposes RESTful endpoints to create, read, update, and delete employees (`CRUD`) and ensures that all data is consistent and permanently stored.
+This project is a Node.js/Express backend for managing employees.  
+It uses TypeScript, in-memory storage with file persistence, and JWT-based authentication.  
+The system supports role-based access for `ADMIN` and `USER` roles, ensuring security for sensitive operations.
 
 ---
 
 ## 🎯 Purpose
 
--   Learn and apply **Zod validation** in middleware.
--   Implement **persistent data storage** with JSON.
--   Practice **error handling**, **clean architecture**, and **TypeScript interfaces**.
--   Demonstrate **graceful shutdown** with data saving on exit signals.
+-   Build a secure REST API for employee management.
+-   Learn how to implement authentication and authorization middleware.
+-   Practice TypeScript and Express best practices.
+-   Handle validation using Zod for reliable data input.
 
 ---
 
 ## ✨ Features
 
--   **Zod validation** for all incoming employee data
--   **Persistent file storage** using `fs`
--   **Graceful shutdown** (auto-save employees on `SIGINT` / `SIGTERM`)
--   **Error-handling middleware** for custom and validation errors
--   **REST API** for employees CRUD operations
--   **Optional filtering by department**
--   Fully **typed** with TypeScript
+-   JWT-based authentication for login and API requests.
+-   Role-based authorization for sensitive routes.
+-   CRUD operations on employees:
+    -   List all employees with optional department filtering.
+    -   Add new employees.
+    -   Update existing employees.
+    -   Delete employees.
+-   Input validation using Zod schemas.
+-   In-memory storage with JSON file persistence.
+-   Graceful shutdown saving all employee data.
+-   Standardized error handling for common and validation errors.
 
 ---
 
 ## 🔍 How It Works
 
-1. On startup:
+1. **Login:**  
+   Users authenticate via `POST /login` with their credentials.  
+   A JWT token is issued containing the user's role.
 
-    - The app loads existing employees from `data/employees.json`.
-    - If the file or directory doesn’t exist, they are created automatically.
+2. **Authentication Middleware:**  
+   The `authenticate` middleware validates the token from `Authorization: Bearer <token>` header.  
+   Throws `401` if token is missing or invalid.
 
-2. When an HTTP request comes in:
+3. **Authorization Middleware:**  
+   The `auth` middleware checks the user role against allowed roles for the route.  
+   Throws `403` if the role does not match.
 
-    - Incoming JSON is validated by **Zod**.
-    - If invalid → handled by `errorHandler`.
+4. **Employees CRUD:**
 
-3. When a new employee is added:
+    - Routes `/api/employees` are protected by authentication and role checks.
+    - `GET /api/employees` – accessible for both `USER` and `ADMIN`.
+    - `POST, PATCH, DELETE /api/employees` – accessible only for `ADMIN`.
 
-    - If `id` is missing → generated via `uuid`.
-    - The employee is stored in an in-memory `Map`.
+5. **Data Persistence:**  
+   Employees are stored in-memory during runtime and saved to `data/employees.json` on server shutdown.
 
-4. On app shutdown (`Ctrl+C`, Docker stop, etc.):
-    - The app listens for `SIGINT` / `SIGTERM`.
-    - Before exiting, all employees are saved back to file.
+6. **Validation:**  
+   Request bodies are validated with Zod schemas to ensure correct data types and constraints.
 
 ---
 
 ## 📜 Output Example
 
-### ✅ Valid Request
+**GET /api/employees**
 
-**POST /api/employees**
+```json
+[
+	{
+		"id": "f1a2b3c4-5678-90ab-cdef-1234567890ab",
+		"fullName": "Alice Johnson",
+		"avatar": "https://example.com/avatar.jpg",
+		"department": "Development",
+		"birthDate": "1995-05-20",
+		"salary": 12000
+	}
+]
+```
+
+````
+
+**POST /login**
 
 ```json
 {
-	"fullName": "John Doe",
-	"avatar": "https://example.com/avatar.jpg",
-	"department": "Engineering",
-	"birthDate": "1990-05-14",
-	"salary": 75000
+	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
-```
-
-**Response 201:**
-
-```json
-{
-	"id": "1e5d2d3a-8d2e-4c1a-9a31-12ab34cd5678",
-	"fullName": "John Doe",
-	"avatar": "https://example.com/avatar.jpg",
-	"department": "Engineering",
-	"birthDate": "1990-05-14",
-	"salary": 75000
-}
-```
-
-### ❌ Invalid Request
-
-**POST /api/employees**
-
-```json
-{
-	"fullName": "",
-	"avatar": "invalid-url"
-}
-```
-
-**Response 400:**
-
-```
-fullName: Full Name is required; avatar: Avatar must be a valid URL
 ```
 
 ---
 
 ## 📦 Usage
 
-### 1️⃣ Install dependencies
+1. Clone the repository:
+
+```bash
+git clone https://github.com/malikinss/telran-backend-hw9.git
+cd telran-backend-hw9
+```
+
+2. Install dependencies:
 
 ```bash
 npm install
 ```
 
-### 2️⃣ Run the server
+3. Create a `.env` file with required environment variables:
+
+```env
+PORT=3000
+JWT_SECRET=your_secret_key
+```
+
+4. Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Server will start at:
-👉 `http://localhost:3000`
+5. Server runs at:
 
-### 3️⃣ Endpoints
-
-| Method | Endpoint                          | Description                 |
-| ------ | --------------------------------- | --------------------------- |
-| GET    | `/api/employees`                  | Get all employees           |
-| GET    | `/api/employees?department=Sales` | Get employees by department |
-| POST   | `/api/employees`                  | Create a new employee       |
-| PATCH  | `/api/employees/:id`              | Update existing employee    |
-| DELETE | `/api/employees/:id`              | Delete employee             |
+```
+http://localhost:3000
+```
 
 ---
 
 ## 🚀 Usage Examples (HTTP)
 
-**Get all employees:**
+**Login:**
 
 ```bash
-curl http://localhost:3000/api/employees
+curl -X POST http://localhost:3000/api/login \
+-H "Content-Type: application/json" \
+-d '{"email":"admin@tel-ran.com","password":"Admin12345"}'
 ```
 
-**Add employee:**
+**Get All Employees (with token):**
+
+```bash
+curl -X GET http://localhost:3000/api/employees \
+-H "Authorization: Bearer <JWT_TOKEN>"
+```
+
+**Add Employee (ADMIN only):**
 
 ```bash
 curl -X POST http://localhost:3000/api/employees \
-  -H "Content-Type: application/json" \
-  -d '{"fullName":"Jane Doe","avatar":"https://example.com/jane.jpg","department":"HR","birthDate":"1995-06-10","salary":65000}'
-```
-
-**Delete employee:**
-
-```bash
-curl -X DELETE http://localhost:3000/api/employees/<id>
+-H "Authorization: Bearer <JWT_TOKEN>" \
+-H "Content-Type: application/json" \
+-d '{"fullName":"John Doe","avatar":"https://example.com/avatar.jpg","department":"QA","birthDate":"1990-01-01","salary":15000}'
 ```
 
 ---
@@ -178,42 +177,63 @@ curl -X DELETE http://localhost:3000/api/employees/<id>
 
 ```
 src/
-├── controller/
-│   └── employeeController.ts
-├── middleware/
-│   ├── errorHandlers/
-│   │   ├── errorHandler.ts
-│   │   └── zodMessageExtractor.ts
-│   └── validations/
-│       └── validateEmployee.ts
-├── model/
-│   └── Employee.ts
-├── route/
-│   └── employeeRoutes.ts
-├── server/
-│   └── app.ts
-├── service/
-│   ├── EmployeesService.ts
-│   └── EmployeesServiceMap.ts
-├── utils/
-│   └── fileStorage.ts
-└── index.ts
+ ├─ config/
+ │   └─ loadEnv.ts
+ ├─ controller/
+ │   ├─ accountingController.ts
+ │   └─ employeeController.ts
+ ├─ middleware/
+ │   ├─ auth/
+ │   │   └─ auth.ts
+ │   ├─ errorHandlers/
+ │   │   ├─ errorHandler.ts
+ │   │   └─ zodMessageExtractor.ts
+ │   └─ validations/
+ │       ├─ schemas/
+ │       │   └─ employeeSchema.ts
+ │       └─ validateEmployee.ts
+ ├─ model/
+ │   ├─ dtoTypes/
+ │   │   ├─ Account.ts
+ │   │   ├─ Employee.ts
+ │   │   └─ LoginData.ts
+ │   └─ errorTypes/
+ │       ├─ aaaErrors.ts
+ │       └─ employeeErrors.ts
+ ├─ route/
+ │   ├─ authRoutes.ts
+ │   └─ employeeRoutes.ts
+ ├─ service/
+ │   ├─ accounting/
+ │   │   ├─ AccountingService.ts
+ │   │   └─ AccountingServiceMap.ts
+ │   └─ employee/
+ │       ├─ EmployeesServiceMap.ts
+ │       └─ EmployeesService.ts
+ ├─ utils/
+ │   ├─ fileStorage.ts
+ │   ├─ mockData.ts
+ │   ├─ security/
+ │   │   ├─ JwtUtil.ts
+ │   │   └─ PasswordUtil.ts
+ │   └─ configFuncs.ts
+ ├─ server/
+ │   └─ app.ts
+ └─ index.ts
 ```
 
 ---
 
 ## ✅ Dependencies
 
-| Package        | Purpose               |
-| -------------- | --------------------- |
-| **express**    | Web server            |
-| **zod**        | Validation            |
-| **morgan**     | HTTP logging          |
-| **uuid**       | Generate unique IDs   |
-| **dotenv**     | Environment variables |
-| **lodash**     | Utility functions     |
-| **typescript** | Type safety           |
-| **fs / path**  | File persistence      |
+-   `express` – REST API framework
+-   `dotenv` – Environment variable management
+-   `jsonwebtoken` – JWT authentication
+-   `zod` – Validation schemas
+-   `bcrypt` – Password hashing
+-   `morgan` – HTTP request logging
+-   `uuid` – Unique ID generation
+-   `nodemon` – Development auto-reload
 
 ---
 
@@ -225,9 +245,10 @@ MIT License
 
 ## 🧮 Conclusion
 
-Homework 9 introduces **validation** and **persistence** concepts, integrating them into a real-world **Express + TypeScript** backend.
-The system now ensures **data integrity**, **durability**, and **safe shutdown** — key principles of any reliable backend service.
+This project demonstrates how to build a secure, role-based REST API using TypeScript, Express, JWT, and Zod.
+It shows best practices in authentication, authorization, validation, error handling, and data persistence.
 
 ---
 
 Made with ❤️ and `TypeScript` by **Sam-Shepsl Malikin**
+````
