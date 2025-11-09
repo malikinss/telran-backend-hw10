@@ -97,8 +97,6 @@ The system supports role-based access for `ADMIN` and `USER` roles, ensuring sec
 ]
 ```
 
-````
-
 **POST /login**
 
 ```json
@@ -251,4 +249,3 @@ It shows best practices in authentication, authorization, validation, error hand
 ---
 
 Made with ❤️ and `TypeScript` by **Sam-Shepsl Malikin**
-````
